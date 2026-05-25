@@ -31,10 +31,4 @@ cd gps-tracking-system-design
 docker compose up -d
 ```
 
-Сайт будет доступен на [http://localhost:8000](http://localhost:8000). Изменения в файлах подхватываются автоматически (hot-reload).
-
-Остановить:
-
-```bash
-docker compose down
-```
+Сайт будет доступен на [http://localhost:8000](http://localhost:8000).
