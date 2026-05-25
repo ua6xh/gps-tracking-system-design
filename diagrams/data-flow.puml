@@ -1,0 +1,77 @@
+@startuml Data_Flow
+!pragma layout smetana
+left to right direction
+skinparam backgroundColor white
+skinparam defaultFontSize 13
+skinparam componentStyle rectangle
+
+skinparam component {
+  BackgroundColor<<service>> #438DD5
+  FontColor<<service>> white
+  BorderColor<<service>> #3C7FC0
+
+  BackgroundColor<<storage>> #85BBF0
+  FontColor<<storage>> black
+  BorderColor<<storage>> #78A8D8
+
+  BackgroundColor<<queue>> #FFD700
+  FontColor<<queue>> black
+  BorderColor<<queue>> #DAB600
+
+  BackgroundColor<<actor>> #08427B
+  FontColor<<actor>> white
+  BorderColor<<actor>> #073B6F
+}
+
+title Потоки данных — GPS-трекинг курьеров
+
+' --- Actors ---
+component "Курьер\n(моб. приложение)" as courier <<actor>>
+component "Диспетчер\n(веб-интерфейс)" as dispatcher <<actor>>
+
+' --- Services ---
+component "API Gateway" as apigw <<service>>
+component "Location\nIngester" as ingester <<service>>
+component "Tracks\nсервис" as tracks <<service>>
+component "Couriers\nсервис" as couriers <<service>>
+
+' --- Queues ---
+component "Kafka\nraw-locations" as kafka_raw <<queue>>
+component "Kafka\nlast-coordinate" as kafka_last <<queue>>
+
+' --- Storage ---
+component "PostgreSQL\n(hot, < 1 мес)" as pg <<storage>>
+component "BigQuery\n(cold, 1–12 мес)" as bq <<storage>>
+component "Redis Geo\n(позиции)" as redis_geo <<storage>>
+component "Redis Cache\n(треки, TTL 1д)" as redis_cache <<storage>>
+
+' --- Connectors ---
+component "BQ Sink\nConnector" as bq_sink <<service>>
+
+' === WRITE PATH ===
+courier -[#green,bold]-> apigw : <color:green>GPS-точки
+apigw -[#green,bold]-> ingester
+ingester -[#green,bold]-> kafka_raw
+kafka_raw -[#green,bold]-> tracks : <color:green>group:\n<color:green>tracks-service
+tracks -[#green,bold]-> pg : <color:green>сохранение
+tracks -[#green,bold]-> kafka_last : <color:green>последняя\n<color:green>координата
+kafka_last -[#green,bold]-> couriers
+couriers -[#green,bold]-> redis_geo : <color:green>GEOADD
+kafka_raw -[#green,bold]-> bq_sink : <color:green>group:\n<color:green>bq-sink
+bq_sink -[#green,bold]-> bq : <color:green>cold storage
+
+' === READ PATH ===
+dispatcher -[#blue,bold]-> apigw : <color:blue>запросы
+apigw -[#blue,bold]-> couriers
+
+couriers -[#blue]-> redis_geo : <color:blue>карта\n<color:blue>(GEOSEARCH)
+couriers -[#blue]-> redis_cache : <color:blue>трек hot\n<color:blue>(cache hit)
+couriers -[#blue,dashed]-> pg : <color:blue>трек hot\n<color:blue>(cache miss)
+couriers -[#blue,dashed]-> bq : <color:blue>трек cold
+
+legend right
+  <color:green>■</color> Write path — GPS-точки от курьера
+  <color:blue>■</color> Read path — запросы диспетчера
+endlegend
+
+@enduml

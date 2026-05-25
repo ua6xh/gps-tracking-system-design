@@ -1,0 +1,1122 @@
+
+<!doctype html>
+<html lang="ru" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Архитектурное решение системы GPS-трекинга курьеров">
+      
+      
+        <meta name="author" content="Vyacheslav Melnikov">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Архитектурное ревью — GPS-трекинг курьеров - GPS Courier Tracking — System Design</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#gps-" class="md-skip">
+          Перейти к содержанию
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+    <a href=".." title="GPS Courier Tracking — System Design" class="md-header__button md-logo" aria-label="GPS Courier Tracking — System Design" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GPS Courier Tracking — System Design
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Архитектурное ревью — GPS-трекинг курьеров
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="amber"  aria-label="Светлая тема"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Светлая тема" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="amber"  aria-label="Тёмная тема"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Тёмная тема" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Поиск">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Инициализация поиска
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../PRD/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  PRD
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../SAD/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  SAD
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../adr/" class="md-tabs__link">
+          
+  
+  
+  ADR Log
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../api/" class="md-tabs__link">
+          
+  
+  
+  API
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Навигация" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="GPS Courier Tracking — System Design" class="md-nav__button md-logo" aria-label="GPS Courier Tracking — System Design" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    GPS Courier Tracking — System Design
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PRD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SAD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SAD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR Log
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ADR Log
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/001-polling-vs-websocket/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    001 — Polling vs WebSocket
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/002-hot-cold-storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    002 — Hot/Cold Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/003-redis-geo-current-positions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    003 — Redis Geo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/004-track-storage-choice/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    004 — Track Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/005-partitioning-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    005 — Partitioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../courier-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Courier API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operator-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operator API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="gps-">Архитектурное ревью — GPS-трекинг курьеров<a class="headerlink" href="#gps-" title="Permanent link">&para;</a></h1>
+<p><strong>Дата:</strong> 2026-05-25</p>
+<p><strong>Ревьюеры:</strong></p>
+<ul>
+<li><strong>Infra Architect</strong> — инфраструктура, хранилища, Kafka, Redis, PG, отказоустойчивость</li>
+<li><strong>API Architect</strong> — REST API дизайн, OpenAPI спецификации</li>
+<li><strong>Data Architect</strong> — модель данных, индексы, типы, паттерны запросов</li>
+<li><strong>Doc Specialist</strong> — консистентность, ссылки, терминология, логика изложения</li>
+</ul>
+<h2 id="_1">Сводка<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Severity</th>
+<th>Количество</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Critical</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Major</td>
+<td>13</td>
+</tr>
+<tr>
+<td>Minor</td>
+<td>12</td>
+</tr>
+<tr>
+<td>Suggestion</td>
+<td>7</td>
+</tr>
+</tbody>
+</table>
+<h2 id="critical">Critical<a class="headerlink" href="#critical" title="Permanent link">&para;</a></h2>
+<h3 id="c-1-13-vs-13">C-1. Числовая ошибка: 1.3 млрд/сутки vs 1.3 млрд/мес<a class="headerlink" href="#c-1-13-vs-13" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Infra Architect</p>
+<p><strong>Файлы:</strong> ADR-005:7, ADR-005:29, SAD:169</p>
+<p><strong>Проблема:</strong> В SAD расчёт верный: 200k × 6 × 60 × 18 ≈ <strong>1.3 млрд/сутки</strong> (~260 ГБ/сутки). Но в ADR-005 написано "~1.3 млрд строк в месяц (~260 ГБ/мес)", а в SAD:169 — "1.3 млрд строк/месяц". Ошибка в 30 раз влияет на все оценки размеров индексов и дисков.</p>
+<p><strong>Рекомендация:</strong> Исправить на "~1.3 млрд строк/сутки" или "~39 млрд строк/месяц".</p>
+<p><strong>Решение:</strong> Исправлено. Все вхождения заменены на "1.3 млрд строк/сутки" (SAD, ADR-005).</p>
+<hr />
+<h3 id="c-2-locations-primary-key">C-2. Таблица locations не имеет Primary Key<a class="headerlink" href="#c-2-locations-primary-key" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect</p>
+<p><strong>Файл:</strong> SAD:160-166</p>
+<p><strong>Проблема:</strong> PK не определён. В PG партиционированная таблица требует, чтобы PK включал ключ партиционирования. Без PK невозможна дедупликация (при at-least-once семантике Kafka дубли неизбежны). В ADR-004 упоминается "удаление GPS glitch" как преимущество PG, но без unique constraint это невозможно.</p>
+<p><strong>Рекомендация:</strong> Добавить составной PK или UNIQUE: <code>(shift_id, created_at)</code> или суррогатный <code>bigserial</code> + <code>created_at</code>. Если PK сознательно отсутствует — задокументировать стратегию дедупликации.</p>
+<p><strong>Решение:</strong> Без PK — осознанный trade-off. Записи append-only, удаление только DROP PARTITION, единичные дубли при batch retry допустимы. PK/UNIQUE на 1.3 млрд строк/сутки замедлил бы INSERT без пользы. Задокументировано в SAD.</p>
+<hr />
+<h3 id="c-3-fk-constraints-pg-">C-3. FK constraints между разными PG-инстансами невозможны<a class="headerlink" href="#c-3-fk-constraints-pg-" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect, Infra Architect</p>
+<p><strong>Файл:</strong> SAD:162-163</p>
+<p><strong>Проблема:</strong> <code>locations.shift_id FK→shifts</code> и <code>locations.courier_id FK→couriers</code> — но <code>locations</code> в Tracks DB, а <code>shifts</code>/<code>couriers</code> в Couriers DB. Cross-database FK в PostgreSQL невозможны.</p>
+<p><strong>Рекомендация:</strong> Убрать <code>FK→</code> пометки из Tracks DB. Добавить примечание: "Ссылочная целостность обеспечивается на уровне приложения".</p>
+<p><strong>Решение:</strong> Исправлено. FK убраны из Tracks DB, добавлено пояснение: логические связи, целостность на уровне приложения (данные из Kafka с валидированными идентификаторами).</p>
+<hr />
+<h2 id="major">Major<a class="headerlink" href="#major" title="Permanent link">&para;</a></h2>
+<h3 id="m-1-bq-sink-connector">M-1. Нет мониторинга BQ Sink Connector<a class="headerlink" href="#m-1-bq-sink-connector" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Infra Architect</p>
+<p><strong>Файл:</strong> SAD:276-299</p>
+<p><strong>Проблема:</strong> Если BQ Sink Connector молча отстаёт, данные не попадают в cold storage. Через месяц PG-партиция дропается → данные потеряны навсегда.</p>
+<p><strong>Рекомендация:</strong> Добавить алерт на consumer lag группы <code>bq-sink</code>. Warning: lag растёт 15 мин. Critical: lag растёт 1 час.</p>
+<p><strong>Решение:</strong> Исправлено. Алерт добавлен в таблицу. Мониторинг переработан: RED для сервисов, USE для инфраструктуры.</p>
+<hr />
+<h3 id="m-2-pre-check-drop-partition">M-2. Нет pre-check перед DROP PARTITION<a class="headerlink" href="#m-2-pre-check-drop-partition" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Infra Architect</p>
+<p><strong>Файл:</strong> ADR-002, SAD:86</p>
+<p><strong>Проблема:</strong> DROP PARTITION выполняется по расписанию. Нет проверки, что данные доехали в BigQuery. Если BQ Sink Connector отстал &gt;7 дней (retention Kafka), данные потеряны.</p>
+<p><strong>Рекомендация:</strong> Добавить проверку: lag consumer group <code>bq-sink</code> = 0 перед дропом. Либо описать как допустимый риск.</p>
+<p><strong>Решение:</strong> Исправлено. Pre-check добавлен: cron проверяет lag <code>bq-sink</code> перед дропом, если lag &gt; 0 — дроп не выполняется, алерт.</p>
+<hr />
+<h3 id="m-3-redis">M-3. Механизм восстановления Redis не описан<a class="headerlink" href="#m-3-redis" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Infra Architect</p>
+<p><strong>Файл:</strong> SAD:249, ADR-003</p>
+<p><strong>Проблема:</strong> Написано "восстановление из потока Kafka за секунды", но КАК — не описано. Couriers сервис читает <code>last-coordinate</code> с committed offset, не replay'ит историю.</p>
+<p><strong>Рекомендация:</strong> Описать: при failover Redis просто ждём ~10 сек — все 200k курьеров пришлют свежие координаты естественным потоком (интервал 10 сек). Явно задокументировать.</p>
+<p><strong>Решение:</strong> Исправлено. Уточнено в SAD: Couriers сервис продолжает GEOADD из потока Kafka, позиции восстанавливаются за ~10 сек, replay не нужен.</p>
+<hr />
+<h3 id="m-4-redis-geo-cleanup">M-4. Redis Geo: нет cleanup при закрытии смены<a class="headerlink" href="#m-4-redis-geo-cleanup" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect, Infra Architect</p>
+<p><strong>Файл:</strong> SAD:179</p>
+<p><strong>Проблема:</strong> Не описан <code>ZREM</code> при закрытии смены. Курьеры-"призраки" будут отображаться на карте. Также нет защиты от "зависших" курьеров (потеря связи).</p>
+<p><strong>Рекомендация:</strong> Описать: (1) <code>ZREM couriers:active {courier_id}</code> при закрытии смены, (2) фоновая задача удаляет курьеров без обновления &gt;5 мин.</p>
+<p><strong>Решение:</strong> Исправлено. Добавлено: GEOADD как upsert, ZREM при закрытии смены, <code>couriers:last_seen</code> HSET, фоновая задача удаления "призраков" (last_seen &gt; 5 мин).</p>
+<hr />
+<h3 id="m-5-float-double-precision">M-5. float вместо double precision для координат<a class="headerlink" href="#m-5-float-double-precision" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect</p>
+<p><strong>Файл:</strong> SAD:164-165</p>
+<p><strong>Проблема:</strong> <code>float</code> (real, 4 байта) даёт ~6-7 значащих цифр. Координата 55.755814 — 8 цифр. Погрешность 1-10 метров.</p>
+<p><strong>Рекомендация:</strong> Использовать <code>double precision</code> (float8). Добавляет 8 байт/строку (~10 ГБ/мес) — незначительно.</p>
+<p><strong>Решение:</strong> Исправлено. <code>float</code> → <code>double precision</code> в SAD.</p>
+<hr />
+<h3 id="m-6">M-6. Нет индекса для запроса трека заказа<a class="headerlink" href="#m-6" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect</p>
+<p><strong>Файл:</strong> SAD:155</p>
+<p><strong>Проблема:</strong> Запрос трека заказа: <code>WHERE courier_id = ? AND created_at BETWEEN ...</code>. Индекс <code>(shift_id, created_at)</code> не поможет — запрос по <code>courier_id</code>.</p>
+<p><strong>Рекомендация:</strong> Перестроить запрос: сначала найти <code>shift_id</code> через <code>orders.shift_id</code>, затем использовать существующий индекс <code>(shift_id, created_at)</code>. Дополнительный индекс не нужен.</p>
+<p><strong>Решение:</strong> Исправлено. Запрос перестроен: <code>WHERE shift_id = ? AND created_at BETWEEN ...</code>, shift_id из orders.</p>
+<hr />
+<h3 id="m-7-bigquery-cluster-by">M-7. BigQuery без CLUSTER BY<a class="headerlink" href="#m-7-bigquery-cluster-by" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect</p>
+<p><strong>Файл:</strong> SAD:172-175</p>
+<p><strong>Проблема:</strong> "Та же структура locations" — но без кластеризации запрос трека за год (95 ТБ) = full scan. $5/ТБ → один запрос ~$0.50 вместо ~$0.001.</p>
+<p><strong>Рекомендация:</strong> Добавить: <code>PARTITION BY DATE(created_at)</code>, <code>CLUSTER BY shift_id, courier_id</code>.</p>
+<p><strong>Решение:</strong> Исправлено. Добавлены PARTITION BY и CLUSTER BY с обоснованием стоимости запросов.</p>
+<hr />
+<h3 id="m-8-accuracy-locations">M-8. Отсутствие accuracy в locations<a class="headerlink" href="#m-8-accuracy-locations" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect</p>
+<p><strong>Файл:</strong> SAD:160-166</p>
+<p><strong>Проблема:</strong> GPS-чип всегда отдаёт accuracy (точность в метрах). Без этого поля невозможно фильтровать мусорные точки (GPS glitch в здании, accuracy &gt;100м).</p>
+<p><strong>Рекомендация:</strong> Добавить <code>accuracy</code> (float). Опционально <code>speed</code> (float). +4-8 байт/строку.</p>
+<p><strong>Решение:</strong> Исправлено. Добавлено поле <code>accuracy</code> (float, метры). <code>speed</code> — за скоупом MVP.</p>
+<hr />
+<h3 id="m-9-at-least-once">M-9. Дедупликация при at-least-once не описана<a class="headerlink" href="#m-9-at-least-once" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect</p>
+<p><strong>Файл:</strong> SAD:58</p>
+<p><strong>Проблема:</strong> Kafka at-least-once + consumer rebalance = дубли. Стратегия не описана.</p>
+<p><strong>Рекомендация:</strong> Связано с C-2 (PK). При наличии <code>UNIQUE(shift_id, created_at)</code> — <code>INSERT ... ON CONFLICT DO NOTHING</code>.</p>
+<p><strong>Решение:</strong> Покрыто C-2. Дубли допустимы, дедупликация не требуется.</p>
+<hr />
+<h3 id="m-10-adr-004-sad-47">M-10. Ссылка на ADR-004 отсутствует в SAD 4.7<a class="headerlink" href="#m-10-adr-004-sad-47" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Doc Specialist</p>
+<p><strong>Файл:</strong> SAD:191-197</p>
+<p><strong>Проблема:</strong> ADR-001, 002, 003, 005 перечислены в разделе "Важные решения". ADR-004 (выбор хранилища — одно из ключевых решений) пропущен.</p>
+<p><strong>Рекомендация:</strong> Добавить: <code>- **Выбор хранилища для треков** — см. [ADR-004](adr/004-track-storage-choice.md)</code></p>
+<p><strong>Решение:</strong> Исправлено. Ссылка добавлена в SAD 4.7.</p>
+<hr />
+<h3 id="m-11-planmd-retention-2-7">M-11. PLAN.md: retention "2д" не соответствует "7д"<a class="headerlink" href="#m-11-planmd-retention-2-7" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Doc Specialist</p>
+<p><strong>Файл:</strong> PLAN.md:19</p>
+<p><strong>Проблема:</strong> В PLAN написано "retention 2д/24ч", в SAD и ADR-002 — 7 дней.</p>
+<p><strong>Рекомендация:</strong> Исправить на "7д/24ч".</p>
+<p><strong>Решение:</strong> Исправлено.</p>
+<hr />
+<h3 id="m-12-api-snake_case-sad-vs-camelcase-openapi">M-12. API: snake_case в SAD vs camelCase в OpenAPI<a class="headerlink" href="#m-12-api-snake_case-sad-vs-camelcase-openapi" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> API Architect</p>
+<p><strong>Файлы:</strong> SAD:104-117, courier-api.yaml, operator-api.yaml</p>
+<p><strong>Проблема:</strong> SAD: <code>{shift_id}</code>, <code>{courier_id}</code>. OpenAPI: <code>{shiftId}</code>, <code>{courierId}</code>. Расхождение naming convention.</p>
+<p><strong>Рекомендация:</strong> Привести к единому стилю. camelCase в URL path params — распространённая практика. Обновить SAD или OpenAPI.</p>
+<p><strong>Решение:</strong> Исправлено. SAD приведён к camelCase в URL path params (<code>{shiftId}</code>, <code>{courierId}</code>, <code>{orderId}</code>). Поля БД остаются snake_case.</p>
+<hr />
+<h3 id="m-13-api-delete-shifts-403400">M-13. API: DELETE /shifts нет 403/400<a class="headerlink" href="#m-13-api-delete-shifts-403400" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> API Architect</p>
+<p><strong>Файл:</strong> courier-api.yaml:72</p>
+<p><strong>Проблема:</strong> Нет ответа для "попытка закрыть чужую смену" (403) или "смена уже закрыта" (400).</p>
+<p><strong>Рекомендация:</strong> Добавить 403 и/или 400 с описанием.</p>
+<p><strong>Решение:</strong> Исправлено. Добавлен 409 Conflict ("смена уже закрыта"). 404 уточнён ("не найдена или не принадлежит курьеру"). 403 не нужен — courier_id из токена, чужой shiftId = 404.</p>
+<hr />
+<h2 id="minor">Minor<a class="headerlink" href="#minor" title="Permanent link">&para;</a></h2>
+<h3 id="m-1-location-ingester">m-1. Location Ingester не включён в список сервисов<a class="headerlink" href="#m-1-location-ingester" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Doc Specialist</p>
+<p><strong>Файл:</strong> SAD:32-36, 45</p>
+<p><strong>Проблема:</strong> Location Ingester описан отдельным абзацем после "Сервисы" и "Хранилища", хотя является сервисом.</p>
+<p><strong>Рекомендация:</strong> Включить в список сервисов.</p>
+<p><strong>Решение:</strong> Исправлено. Location Ingester перенесён в список сервисов, дублирующий абзац удалён.</p>
+<hr />
+<h3 id="m-2-slave-vs-replica">m-2. "slave" vs "replica" — смешение терминологии<a class="headerlink" href="#m-2-slave-vs-replica" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Doc Specialist</p>
+<p><strong>Файл:</strong> SAD:81, 286</p>
+<p><strong>Проблема:</strong> PG с версии 14 использует primary/standby. В SAD смешаны "slave" и "реплики".</p>
+<p><strong>Рекомендация:</strong> Заменить "slave" на "replica".</p>
+<p><strong>Решение:</strong> Оставлено master/slave — терминология принятая в команде.</p>
+<hr />
+<h3 id="m-3-pgbouncer">m-3. pgbouncer не умеет шардировать<a class="headerlink" href="#m-3-pgbouncer" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Infra Architect</p>
+<p><strong>Файл:</strong> SAD:321</p>
+<p><strong>Проблема:</strong> "Несколько шардов за pgbouncer" — pgbouncer мультиплексирует соединения, не роутит шарды.</p>
+<p><strong>Рекомендация:</strong> Исправить: "Несколько шардов через Citus или ручное шардирование на уровне приложения".</p>
+<p><strong>Решение:</strong> Исправлено.</p>
+<hr />
+<h3 id="m-4-lifecycle">m-4. Lifecycle партиций не описан<a class="headerlink" href="#m-4-lifecycle" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Infra Architect</p>
+<p><strong>Файл:</strong> SAD:86, ADR-005</p>
+<p><strong>Проблема:</strong> Не описано сколько партиций живёт одновременно, когда именно дроп, что если cron упал и партиция не создана (INSERT'ы упадут).</p>
+<p><strong>Рекомендация:</strong> Описать: создание на 2-3 месяца вперёд, fallback через pg_partman.</p>
+<p><strong>Решение:</strong> Исправлено. Lifecycle описан: создание на 3 месяца вперёд, одновременно живут текущая + прошлый месяц + 3 будущих.</p>
+<hr />
+<h3 id="m-5-hot-storage-window-1-2">m-5. Hot storage window плавает 1-2 месяца<a class="headerlink" href="#m-5-hot-storage-window-1-2" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect, Infra Architect</p>
+<p><strong>Файл:</strong> SAD:82, ADR-005</p>
+<p><strong>Проблема:</strong> Помесячные партиции + дроп "старше 1 мес" → данные за начало месяца хранятся ~2 месяца, за конец ~1 месяц. Роутинг по дате на стыке месяцев может отправить в PG, хотя данные уже дропнуты.</p>
+<p><strong>Рекомендация:</strong> Явно задокументировать: hot = 1-2 месяца. Или использовать <code>ended_at</code> для роутинга.</p>
+<p><strong>Решение:</strong> Исправлено. Задокументировано: hot window 1-2 месяца, роутинг в BQ если смена старше последней живой партиции.</p>
+<hr />
+<h3 id="m-6-brin-use-case">m-6. BRIN — use-case не описан явно<a class="headerlink" href="#m-6-brin-use-case" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect</p>
+<p><strong>Файл:</strong> SAD:169</p>
+<p><strong>Проблема:</strong> Partition pruning PG делает автоматически. BRIN полезен для запросов "все точки за последний час" (мониторинг), но это не описано.</p>
+<p><strong>Рекомендация:</strong> Указать конкретный use-case для BRIN.</p>
+<p><strong>Решение:</strong> Исправлено. Добавлен use-case: мониторинговые и отладочные запросы по диапазону времени.</p>
+<hr />
+<h3 id="m-7-shiftscourier_id-started_at">m-7. Нет индекса shifts(courier_id, started_at)<a class="headerlink" href="#m-7-shiftscourier_id-started_at" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect</p>
+<p><strong>Файл:</strong> SAD:115, 152</p>
+<p><strong>Проблема:</strong> GET /shifts по courier_id с фильтрацией по дате — partial index покрывает только открытые смены.</p>
+<p><strong>Рекомендация:</strong> Добавить B-tree <code>(courier_id, started_at DESC)</code> для пагинации смен.</p>
+<p><strong>Решение:</strong> Исправлено. Индекс добавлен в SAD.</p>
+<hr />
+<h3 id="m-8-redis-hset-vs-string">m-8. Redis кэш: HSET vs STRING<a class="headerlink" href="#m-8-redis-hset-vs-string" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect</p>
+<p><strong>Файл:</strong> SAD:183</p>
+<p><strong>Проблема:</strong> Описан "HSET" для кэша треков, но "массив точек" — это blob, для которого логичнее STRING (SET).</p>
+<p><strong>Рекомендация:</strong> Уточнить: если JSON blob → STRING, если structured → описать поля HSET.</p>
+<p><strong>Решение:</strong> Исправлено. HSET → STRING. Кэш трека = JSON blob, один SET/GET.</p>
+<hr />
+<h3 id="m-9-api-401-unauthorized">m-9. API: нет 401 Unauthorized<a class="headerlink" href="#m-9-api-401-unauthorized" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> API Architect</p>
+<p><strong>Файлы:</strong> courier-api.yaml, operator-api.yaml</p>
+<p><strong>Проблема:</strong> Оба API используют аутентификацию, но 401 не описан ни в одном эндпоинте.</p>
+<p><strong>Рекомендация:</strong> Добавить 401 как общий response.</p>
+<p><strong>Решение:</strong> Исправлено. 401 Unauthorized добавлен на все эндпоинты courier-api.yaml и operator-api.yaml.</p>
+<hr />
+<h3 id="m-10-planmd-camelcase-orderid-courierid">m-10. PLAN.md: camelCase (orderId, courierId)<a class="headerlink" href="#m-10-planmd-camelcase-orderid-courierid" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Doc Specialist</p>
+<p><strong>Файл:</strong> PLAN.md:46, 51</p>
+<p><strong>Проблема:</strong> camelCase в PLAN, snake_case в SAD/ADR.</p>
+<p><strong>Рекомендация:</strong> Привести к snake_case.</p>
+<p><strong>Решение:</strong> Исправлено. PLAN.md приведён к snake_case.</p>
+<hr />
+<h3 id="m-11-adr-004-8-hot-storage">m-11. ADR-004: "~8 ТБ/мес" для hot storage<a class="headerlink" href="#m-11-adr-004-8-hot-storage" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Doc Specialist, Infra Architect</p>
+<p><strong>Файл:</strong> ADR-004:73</p>
+<p><strong>Проблема:</strong> 260 ГБ/сутки × 30 = ~7.8 ТБ/мес — число верное, но расходится с "~260 ГБ/мес" в ADR-005 (который содержит ошибку, см. C-1). После исправления C-1 всё сойдётся.</p>
+<p><strong>Рекомендация:</strong> Исправится автоматически при исправлении C-1.</p>
+<p><strong>Решение:</strong> Исправлено с C-1.</p>
+<hr />
+<h3 id="m-12-redis-last_seen_at">m-12. Redis: нет метаданных позиции (last_seen_at)<a class="headerlink" href="#m-12-redis-last_seen_at" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect</p>
+<p><strong>Файл:</strong> SAD:179</p>
+<p><strong>Проблема:</strong> Диспетчер не знает, актуальна ли позиция курьера (30 сек или 10 мин давности).</p>
+<p><strong>Рекомендация:</strong> Добавить HSET <code>courier:meta:{courier_id}</code> с <code>last_seen_at</code>.</p>
+<p><strong>Решение:</strong> Покрыто M-4. Добавлен <code>couriers:last_seen</code> HSET.</p>
+<hr />
+<h2 id="suggestion">Suggestion<a class="headerlink" href="#suggestion" title="Permanent link">&para;</a></h2>
+<h3 id="s-1-shiftsid-int-bigint">S-1. shifts.id: int → bigint<a class="headerlink" href="#s-1-shiftsid-int-bigint" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Data Architect. При 1 млн курьеров × 2 смены/день — переполнение int за ~3 года.</p>
+<h3 id="s-2-post-locations-200-202-accepted">S-2. POST /locations: 200 → 202 Accepted<a class="headerlink" href="#s-2-post-locations-200-202-accepted" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> API Architect. Данные пишутся в Kafka асинхронно, 202 точнее семантически.</p>
+<h3 id="s-3-courier-schema">S-3. Courier schema: расширить профиль<a class="headerlink" href="#s-3-courier-schema" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> API Architect. <code>GET /couriers/{id}</code> и <code>CourierSummary</code> идентичны — нет смысла в отдельном эндпоинте.</p>
+<h3 id="s-4-post-shifts-started_at-response">S-4. POST /shifts: добавить started_at в response<a class="headerlink" href="#s-4-post-shifts-started_at-response" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> API Architect. Мобильному клиенту нужно серверное время начала смены.</p>
+<h3 id="s-5-post-locations">S-5. POST /locations: поведение без открытой смены<a class="headerlink" href="#s-5-post-locations" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> API Architect. Что если GPS-точка приходит, а смена не открыта? Нужен 400 или тихо игнорировать?</p>
+<h3 id="s-6-adr-acks1-vs-acksall">S-6. ADR для acks=1 vs acks=all<a class="headerlink" href="#s-6-adr-acks1-vs-acksall" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Doc Specialist. Серьёзный trade-off, заслуживает отдельного ADR.</p>
+<h3 id="s-7-micro-batching">S-7. Метрики micro-batching<a class="headerlink" href="#s-7-micro-batching" title="Permanent link">&para;</a></h3>
+<p><strong>Кто нашёл:</strong> Infra Architect. batch size (avg/p95), insert latency, throughput — не описаны в мониторинге.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  К началу
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy", "toc.integrate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

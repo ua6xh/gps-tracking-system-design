@@ -1,0 +1,1876 @@
+
+<!doctype html>
+<html lang="ru" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Архитектурное решение системы GPS-трекинга курьеров">
+      
+      
+        <meta name="author" content="Vyacheslav Melnikov">
+      
+      
+      
+        <link rel="prev" href="../PRD/">
+      
+      
+        <link rel="next" href="../adr/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>SAD - GPS Courier Tracking — System Design</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#sad-solution-architecture-document-gps-" class="md-skip">
+          Перейти к содержанию
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Верхний колонтитул">
+    <a href=".." title="GPS Courier Tracking — System Design" class="md-header__button md-logo" aria-label="GPS Courier Tracking — System Design" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GPS Courier Tracking — System Design
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              SAD
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="amber"  aria-label="Светлая тема"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Светлая тема" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="amber"  aria-label="Тёмная тема"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Тёмная тема" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Поиск" placeholder="Поиск" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Поиск">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Очистить" aria-label="Очистить" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Инициализация поиска
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Вкладки" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../PRD/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  PRD
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  SAD
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../adr/" class="md-tabs__link">
+          
+  
+  
+  ADR Log
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../api/" class="md-tabs__link">
+          
+  
+  
+  API
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Навигация" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="GPS Courier Tracking — System Design" class="md-nav__button md-logo" aria-label="GPS Courier Tracking — System Design" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    GPS Courier Tracking — System Design
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PRD/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SAD
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SAD
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Содержание">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Содержание
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Общая информация
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Цель
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Контекст
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Архитектура решения
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Архитектура решения">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1. Основные компоненты и интеграции
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-c4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2. Системный контекст (C4)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3. Потоки данных
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-api-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4. API-контракты
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4.4. API-контракты">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#courier-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Courier API (мобильное приложение)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operator-api-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator API (веб-интерфейс)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operator-api-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator API: Заказы (этап 2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5. Схема данных
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6. Кэширование
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.7. Важные решения и обоснования
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-capacity-planning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Расчёты нагрузки (Capacity Planning)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Ключевые требования и ограничения
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Масштабируемость и отказоустойчивость
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Масштабируемость и отказоустойчивость">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Паттерны надёжности
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Масштабирование
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Безопасность
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Мониторинг
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Мониторинг">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#-" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Бизнес-метрики
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Инфраструктурные метрики
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Алерты
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Риски и предположения
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Горизонт масштабирования (до 1 млн курьеров)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Влияния и последствия
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR Log
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ADR Log
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/001-polling-vs-websocket/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    001 — Polling vs WebSocket
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/002-hot-cold-storage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    002 — Hot/Cold Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/003-redis-geo-current-positions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    003 — Redis Geo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/004-track-storage-choice/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    004 — Track Storage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/005-partitioning-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    005 — Partitioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../courier-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Courier API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operator-api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operator API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="sad-solution-architecture-document-gps-">SAD — Solution Architecture Document — Система GPS-трекинга курьеров<a class="headerlink" href="#sad-solution-architecture-document-gps-" title="Permanent link">&para;</a></h1>
+<h2 id="1">1. Общая информация<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<p><strong>Название:</strong> Система GPS-трекинга курьеров</p>
+<p><strong>Ответственный:</strong> Вячеслав Мельников</p>
+<p><strong>PRD:</strong> <a href="../PRD/">PRD — Система GPS-трекинга курьеров</a></p>
+<h2 id="2">2. Цель<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<p>Обеспечить отслеживание курьеров в реальном времени и хранение истории перемещений для федерального сервиса доставки.</p>
+<h2 id="3">3. Контекст<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<p><strong>MeepMeep</strong> — федеральный логистический оператор, работающий по всей РФ (11 часовых поясов). Курьерская сеть охватывает всю страну — система работает круглосуточно, т.к. когда в Москве ночь, во Владивостоке уже рабочий день. Курьеры (мобильное приложение) отправляют GPS-координаты, диспетчеры (веб-интерфейс) мониторят карту и анализируют маршруты. Система заказов и клиентское приложение уже существуют — трекинг интегрируется с ними через внутренние API.</p>
+<p><strong>Ключевые заинтересованные стороны:</strong> диспетчерская служба, операционный отдел, команда системы заказов (интеграция, этап 2).</p>
+<p><strong>Основные архитектурные драйверы (ASR):</strong></p>
+<ul>
+<li>Write-heavy система (20k RPS запись vs ~1k RPS чтение)</li>
+<li>Staleness &lt; 1 мин</li>
+<li>Availability 99.99%</li>
+<li>Хранение истории 1 год (~95 ТБ)</li>
+<li>Эластичность под пиковые нагрузки (x3)</li>
+</ul>
+<h2 id="4">4. Архитектура решения<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<h3 id="41">4.1. Основные компоненты и интеграции<a class="headerlink" href="#41" title="Permanent link">&para;</a></h3>
+<p><strong>Сервисы:</strong></p>
+<ul>
+<li><strong>API Gateway + Load Balancer</strong> — точка входа, маршрутизация, rate limiting</li>
+<li><strong>Location Ingester</strong> — тонкий stateless сервис на входе write-path. Валидация + запись в Kafka. Не ходит в БД, защищает pipeline от потери данных при перегрузке Tracks сервиса</li>
+<li><strong>Tracks сервис</strong> — потребление GPS-точек из Kafka, хранение треков в PostgreSQL, публикация последней координаты в Kafka</li>
+<li><strong>Couriers сервис</strong> — профили курьеров, статусы, смены, отдача треков (роутинг между hot/cold хранилищами)</li>
+</ul>
+<p><strong>Хранилища:</strong></p>
+<ul>
+<li><strong>Redis Geo</strong> — текущие позиции курьеров (GEOADD/GEOSEARCH), hot data для карты</li>
+<li><strong>Redis Cache</strong> — кэш завершённых треков (STRING, TTL 1 день)</li>
+<li><strong>PostgreSQL (Tracks)</strong> — GPS-точки за последний месяц, партиционирование по месяцам, async-репликация (Kafka = source of truth), master + 2 реплики</li>
+<li><strong>PostgreSQL (Couriers)</strong> — профили, смены, метаданные, semi-sync репликация (1 sync + 1 async)</li>
+<li><strong>BigQuery</strong> — холодные треки (1-12 месяцев), данные поступают параллельно из Kafka через BigQuery Sink Connector</li>
+</ul>
+<p><strong>BigQuery Sink Connector</strong> (Kafka Connect) — отдельный consumer group (<code>bq-sink</code>) на топике <code>raw-locations</code>, пишет GPS-точки напрямую в BigQuery. Данные попадают в BigQuery параллельно с PostgreSQL, перекладка не нужна.</p>
+<p><strong>Kafka</strong> (RF=3, 3 брокера):</p>
+<table>
+<thead>
+<tr>
+<th>Топик</th>
+<th>Партиции</th>
+<th>Ключ</th>
+<th>Producer</th>
+<th>Consumer (group)</th>
+<th>acks</th>
+<th>Retention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>raw-locations</code></td>
+<td>64</td>
+<td>courier_id</td>
+<td>Location Ingester</td>
+<td>Tracks сервис (<code>tracks-service</code>), BQ Sink Connector (<code>bq-sink</code>)</td>
+<td>1</td>
+<td>7 дней</td>
+</tr>
+<tr>
+<td><code>last-coordinate</code></td>
+<td>16</td>
+<td>courier_id</td>
+<td>Tracks сервис</td>
+<td>Couriers сервис (<code>couriers-service</code>)</td>
+<td>1</td>
+<td>24 часа</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Ключ courier_id</strong> — точки одного курьера всегда в одной партиции, порядок гарантирован</li>
+<li><strong>acks=1</strong> — лидер партиции подтвердил запись. Компромисс: скорость при 20k RPS, потеря единичных точек при падении лидера допустима (клиент пришлёт повторно)</li>
+<li><strong>Micro-batching</strong> — consumer Tracks сервиса забирает пачку сообщений из <code>raw-locations</code> за один <code>poll()</code>, формирует multi-row INSERT в PostgreSQL</li>
+<li><strong>Consumer rebalance</strong> — при падении инстанса consumer'а его партиции автоматически перераспределяются между оставшимися</li>
+<li><strong>Два consumer group на <code>raw-locations</code></strong> — <code>tracks-service</code> пишет в PG (hot), <code>bq-sink</code> пишет в BigQuery (cold). Consumer groups читают один топик независимо, каждый хранит свой offset</li>
+<li><strong>Kafka vs RabbitMQ</strong> — Kafka выбрана как append-only лог событий: replay, несколько consumer groups на одном топике, высокий throughput. RabbitMQ — task queue (задача удаляется после ack), не подходит для потока GPS-данных</li>
+</ul>
+<h3 id="42-c4">4.2. Системный контекст (C4)<a class="headerlink" href="#42-c4" title="Permanent link">&para;</a></h3>
+<p><img alt="C4 Context" src="../diagrams/C4_Context.svg" /></p>
+<h3 id="43">4.3. Потоки данных<a class="headerlink" href="#43" title="Permanent link">&para;</a></h3>
+<p><img alt="Data Flow" src="../diagrams/Data_Flow.svg" /></p>
+<p><strong>Write path</strong> (зелёный) — GPS-точки от курьера через Location Ingester попадают в Kafka (<code>raw-locations</code>). Далее два независимых consumer group'а обрабатывают данные параллельно:</p>
+<ul>
+<li><strong>Tracks сервис</strong> (<code>tracks-service</code>) — сохраняет в PostgreSQL (hot storage), публикует последнюю координату в <code>last-coordinate</code></li>
+<li><strong>BigQuery Sink Connector</strong> (<code>bq-sink</code>) — пишет напрямую в BigQuery (cold storage)</li>
+</ul>
+<p>Couriers сервис потребляет <code>last-coordinate</code> и обновляет Redis Geo. Точки с <code>accuracy &gt; 100м</code> игнорируются — на карте остаётся последняя хорошая позиция. В PG данные сохраняются все (для полноты истории).</p>
+<p><strong>Read path</strong> (синий) — запросы диспетчера через API Gateway к Couriers сервису, который роутит по сценарию:</p>
+<ul>
+<li><strong>Карта</strong> — Redis GEOSEARCH, polling каждые 5 сек</li>
+<li><strong>Трек смены (hot, &lt; 1 мес)</strong> — Redis Cache (hit) или PostgreSQL slave (miss → кэш)</li>
+<li><strong>Трек смены (cold, 1–12 мес)</strong> — BigQuery</li>
+</ul>
+<p>Роутинг hot/cold по дате начала смены. Два адаптера за единым интерфейсом. Hot window фактически 1-2 месяца (помесячные партиции — данные за начало месяца живут до дропа в следующем). Если смена старше последней живой партиции — роутинг в BigQuery.</p>
+<p><strong>Lifecycle партиций</strong> — партиции создаются заранее на 3 месяца вперёд (запас при сбое cron). Одновременно живут: текущая + прошлый месяц + 3 будущих. Cron job раз в месяц: (1) создаёт следующую партицию, (2) выполняет <code>DROP PARTITION</code> для партиций старше 1 месяца. DROP PARTITION — мгновенная операция (O(1)), в отличие от DELETE который сканирует и помечает строки. Pre-check: перед дропом проверяется consumer lag группы <code>bq-sink</code> — если lag &gt; 0, дроп не выполняется и срабатывает алерт. Это гарантирует, что данные доехали в BigQuery.</p>
+<h3 id="44-api-">4.4. API-контракты<a class="headerlink" href="#44-api-" title="Permanent link">&para;</a></h3>
+<p>Полная спецификация — <a href="../api/">OpenAPI (Swagger UI)</a>. Ниже — сводная таблица.</p>
+<p>Два API с разной стратегией версионирования:</p>
+<ul>
+<li><strong>Courier API</strong> (<code>/api/v1/courier/...</code>) — мобильное приложение. Версионируется, т.к. мобильные клиенты нельзя принудительно обновить.</li>
+<li><strong>Operator API</strong> (<code>/api/operator/...</code>) — веб-интерфейс. Без версионирования, т.к. веб всегда на актуальной версии.</li>
+</ul>
+<p>Аутентификация: Courier API — <code>X-Api-Token</code> (courier_id из токена), Operator API — JWT в httpOnly cookie.</p>
+<h4 id="courier-api">Courier API (мобильное приложение)<a class="headerlink" href="#courier-api" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Метод</th>
+<th>Эндпоинт</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST</td>
+<td><code>/api/v1/courier/shifts</code></td>
+<td>Открыть смену (идемпотентный ключ)</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/v1/courier/shifts/{shiftId}</code></td>
+<td>Закрыть смену</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/v1/courier/locations</code></td>
+<td>Отправить GPS-координату</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/v1/courier/locations/batch</code></td>
+<td>Отправить буфер GPS-координат (до 100 шт)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="operator-api-">Operator API (веб-интерфейс)<a class="headerlink" href="#operator-api-" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Метод</th>
+<th>Эндпоинт</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/operator/map/couriers?lat1&amp;lng1&amp;lat2&amp;lng2</code></td>
+<td>Курьеры в области карты (bounding box, polling 5 сек)</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/operator/couriers?limit&amp;offset&amp;status</code></td>
+<td>Список курьеров</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/operator/couriers/{courierId}</code></td>
+<td>Профиль курьера</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/operator/couriers/{courierId}/shifts?limit&amp;offset&amp;dateFrom&amp;dateTo</code></td>
+<td>Смены курьера</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/operator/couriers/{courierId}/shifts/{shiftId}</code></td>
+<td>Детали смены</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/operator/shifts/{shiftId}/locations</code></td>
+<td>Трек смены</td>
+</tr>
+</tbody>
+</table>
+<h4 id="operator-api-2">Operator API: Заказы (этап 2)<a class="headerlink" href="#operator-api-2" title="Permanent link">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th>Метод</th>
+<th>Эндпоинт</th>
+<th>Назначение</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/operator/shifts/{shiftId}/orders</code></td>
+<td>Заказы в смене</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/operator/orders/{orderId}</code></td>
+<td>Детали заказа</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/operator/orders/{orderId}/locations</code></td>
+<td>Трек заказа</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ключевые решения:</strong></p>
+<ul>
+<li>Трек привязан к смене, не к курьеру (shift_id уникален глобально)</li>
+<li>Трек заказа = фильтрация locations по <code>shift_id + created_at BETWEEN orders.started_at AND orders.ended_at</code> (shift_id берётся из таблицы orders, используется существующий индекс)</li>
+<li>Заказы — overlay на историческом треке, не на карте реального времени</li>
+</ul>
+<h3 id="45">4.5. Схема данных<a class="headerlink" href="#45" title="Permanent link">&para;</a></h3>
+<p><strong>PostgreSQL — Couriers DB:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Таблица</th>
+<th>Поле</th>
+<th>Тип</th>
+<th>Nullable</th>
+<th>Пример</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>couriers</strong></td>
+<td>id</td>
+<td>int</td>
+<td>no</td>
+<td>1, 2, 3</td>
+</tr>
+<tr>
+<td></td>
+<td>first_name</td>
+<td>string</td>
+<td>no</td>
+<td>"Иван"</td>
+</tr>
+<tr>
+<td></td>
+<td>last_name</td>
+<td>string</td>
+<td>no</td>
+<td>"Иванов"</td>
+</tr>
+<tr>
+<td><strong>shifts</strong></td>
+<td>id</td>
+<td>int</td>
+<td>no</td>
+<td>1, 2, 3</td>
+</tr>
+<tr>
+<td></td>
+<td>courier_id</td>
+<td>int FK→couriers</td>
+<td>no</td>
+<td>1</td>
+</tr>
+<tr>
+<td></td>
+<td>started_at</td>
+<td>ts with tz</td>
+<td>no</td>
+<td>'2026-01-01T09:00:00+03:00'</td>
+</tr>
+<tr>
+<td></td>
+<td>ended_at</td>
+<td>ts with tz</td>
+<td>yes</td>
+<td>'2026-01-01T21:00:00+03:00'</td>
+</tr>
+<tr>
+<td><strong>orders</strong></td>
+<td>order_id</td>
+<td>int</td>
+<td>no</td>
+<td>1001</td>
+</tr>
+<tr>
+<td></td>
+<td>shift_id</td>
+<td>int FK→shifts</td>
+<td>no</td>
+<td>1</td>
+</tr>
+<tr>
+<td></td>
+<td>courier_id</td>
+<td>int FK→couriers</td>
+<td>no</td>
+<td>1</td>
+</tr>
+<tr>
+<td></td>
+<td>started_at</td>
+<td>ts with tz</td>
+<td>no</td>
+<td>'2026-01-01T10:00:00+03:00'</td>
+</tr>
+<tr>
+<td></td>
+<td>ended_at</td>
+<td>ts with tz</td>
+<td>yes</td>
+<td>'2026-01-01T10:45:00+03:00'</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>shifts</code>: partial unique index on <code>(courier_id, ended_at) WHERE ended_at IS NULL</code> — защита от двух открытых смен</li>
+<li><code>shifts</code>: B-tree индекс <code>(courier_id, started_at DESC)</code> — для пагинации смен курьера с фильтрацией по дате</li>
+<li>Статус "на линии" определяется наличием незакрытой смены, отдельного поля status нет</li>
+<li><code>orders</code>: order_id приходит из внешней системы заказов, адреса и детали заказа не дублируем</li>
+<li>Трек заказа = фильтрация locations по <code>shift_id + created_at BETWEEN orders.started_at AND orders.ended_at</code> (shift_id берётся из таблицы orders, используется существующий индекс)</li>
+<li>Интеграция с системой заказов (этап 2): система заказов публикует события ("заказ назначен", "заказ завершён") в Kafka, Couriers сервис потребляет и сохраняет в таблицу <code>orders</code>. При недоступности системы заказов — данные доедут с задержкой, диспетчер видит всё что успело приехать</li>
+</ul>
+<p><strong>PostgreSQL — Tracks DB (партиционирование по месяцам):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Таблица</th>
+<th>Поле</th>
+<th>Тип</th>
+<th>Nullable</th>
+<th>Пример</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>locations</strong></td>
+<td>shift_id</td>
+<td>int</td>
+<td>no</td>
+<td>1</td>
+</tr>
+<tr>
+<td></td>
+<td>courier_id</td>
+<td>int</td>
+<td>no</td>
+<td>1</td>
+</tr>
+<tr>
+<td></td>
+<td>lat</td>
+<td>double precision</td>
+<td>no</td>
+<td>55.7558</td>
+</tr>
+<tr>
+<td></td>
+<td>lng</td>
+<td>double precision</td>
+<td>no</td>
+<td>37.6173</td>
+</tr>
+<tr>
+<td></td>
+<td>accuracy</td>
+<td>float</td>
+<td>no</td>
+<td>10.5</td>
+</tr>
+<tr>
+<td></td>
+<td>created_at</td>
+<td>ts with tz</td>
+<td>no</td>
+<td>'2026-01-01T10:05:30+03:00'</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>shift_id</code> и <code>courier_id</code> — логические связи, не FK. Tracks DB и Couriers DB — разные PG-инстансы, cross-database FK невозможны. Целостность обеспечивается на уровне приложения (данные приходят из Kafka с уже валидированными идентификаторами)</li>
+<li>Таблица без Primary Key — осознанный trade-off. Записи append-only, удаление только через DROP PARTITION, чтение — трек целиком. PK/UNIQUE на 1.3 млрд строк/сутки замедлил бы INSERT без реальной пользы. Единичные дубли при batch retry допустимы (незаметны на треке из 5000 точек)</li>
+<li>Партиционирование по <code>created_at</code> (помесячно)</li>
+<li>BRIN-индекс на <code>created_at</code> — данные записываются последовательно во времени, BRIN хранит min/max по блокам страниц вместо индексации каждой строки. Размер индекса ~МБ вместо десятков ГБ (B-tree) при 1.3 млрд строк/сутки. Используется для мониторинговых и отладочных запросов по диапазону времени ("сколько точек за последние 5 минут", "точки курьера за последний час"). Основные запросы треков идут через B-tree <code>(shift_id, created_at)</code></li>
+<li>B-tree индекс на <code>(shift_id, created_at)</code> — для запросов трека конкретной смены. Составной индекс позволяет отдать точки уже отсортированными по времени без дополнительного Sort в плане запроса</li>
+</ul>
+<p><strong>BigQuery (cold storage):</strong></p>
+<ul>
+<li>Та же структура <code>locations</code>, данные поступают параллельно из Kafka через BigQuery Sink Connector</li>
+<li><code>PARTITION BY DATE(created_at)</code> — partition pruning по дате, запрос сканирует только нужный день</li>
+<li><code>CLUSTER BY shift_id, courier_id</code> — данные внутри партиции отсортированы по shift_id, запрос трека смены сканирует минимум блоков. Без кластеризации запрос за год (95 ТБ) = full scan (~$0.50), с кластеризацией — ~$0.001</li>
+<li>Retention 7 дней на топике <code>raw-locations</code> — запас на случай падения Sink Connector'а (продолжит с сохранённого offset)</li>
+</ul>
+<p><strong>Redis Geo (текущие позиции):</strong></p>
+<ul>
+<li>Key: <code>couriers:active</code>, Members: <code>{courierId}</code>, Score: geohash(lat, lng)</li>
+<li><code>GEOADD</code> работает как upsert — если courier_id уже существует, координаты обновляются. Всегда одна точка на курьера, дублей нет (Redis Geo = Sorted Set под капотом)</li>
+<li>При закрытии смены — <code>ZREM couriers:active {courierId}</code> (убрать курьера с карты)</li>
+</ul>
+<p><strong>Redis HSET (метаданные позиции):</strong></p>
+<ul>
+<li>Key: <code>couriers:last_seen</code>, Field: <code>{courierId}</code>, Value: timestamp последнего обновления</li>
+<li>Обновляется вместе с GEOADD при каждом получении координаты</li>
+<li>Фоновая задача (раз в минуту): удаляет из <code>couriers:active</code> курьеров с <code>last_seen</code> &gt; 5 мин — защита от "призраков" (приложение крашнулось, смена не закрыта, координаты не приходят)</li>
+</ul>
+<p><strong>Redis STRING (кэш завершённых треков):</strong></p>
+<ul>
+<li>Команда: <code>SET track:{shiftId} &lt;json&gt; EX 86400</code></li>
+<li>Key: <code>track:{shiftId}</code>, Value: JSON-массив точек (<code>[{lat, lng, accuracy, created_at}, ...]</code>), TTL 1 день</li>
+</ul>
+<h3 id="46">4.6. Кэширование<a class="headerlink" href="#46" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Redis Geo</strong> — текущие позиции всех активных курьеров. Источник данных для карты диспетчера.</li>
+<li><strong>Redis STRING</strong> — кэш завершённых треков. TTL 1 день. Ключ: <code>track:{shiftId}</code>. Иммутабельные данные — инвалидация не нужна.</li>
+<li>Незавершённые треки (текущая смена) — всегда из PostgreSQL, не кэшируются.</li>
+</ul>
+<h3 id="47">4.7. Важные решения и обоснования<a class="headerlink" href="#47" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Polling vs WebSocket</strong> — см. <a href="../adr/001-polling-vs-websocket/">ADR-001</a></li>
+<li><strong>Bounding box vs Radius</strong> — выбран bounding box: карта SDK отдаёт bounds viewport из коробки, радиус добавляет лишнюю математику без выгоды</li>
+<li><strong>Hot/Cold storage</strong> — см. <a href="../adr/002-hot-cold-storage/">ADR-002</a></li>
+<li><strong>Redis Geo для текущих позиций</strong> — см. <a href="../adr/003-redis-geo-current-positions/">ADR-003</a></li>
+<li><strong>Выбор хранилища для треков</strong> — см. <a href="../adr/004-track-storage-choice/">ADR-004</a></li>
+<li><strong>Партиционирование locations</strong> — см. <a href="../adr/005-partitioning-strategy/">ADR-005</a></li>
+</ul>
+<h2 id="5-capacity-planning">5. Расчёты нагрузки (Capacity Planning)<a class="headerlink" href="#5-capacity-planning" title="Permanent link">&para;</a></h2>
+<p><strong>Масштаб:</strong></p>
+<ul>
+<li>500k курьеров всего, ~200k одновременно на линии</li>
+<li>5k диспетчеров</li>
+<li>Интервал отправки GPS — 10 сек</li>
+</ul>
+<p><strong>RPS:</strong></p>
+<ul>
+<li>Write: 200,000 / 10 = <strong>20,000 RPS</strong> (средний), <strong>60,000 RPS</strong> (пик x3)</li>
+<li>Read: ~1,000 RPS (диспетчеры, polling каждые 5 сек)</li>
+<li>Система <strong>write-heavy</strong>, соотношение w:r ≈ 20:1</li>
+</ul>
+<p><strong>Пропускная способность:</strong></p>
+<ul>
+<li>Write: 20,000 × 200 байт = <strong>4 МБ/с</strong> (средняя), <strong>12 МБ/с</strong> (пик)</li>
+</ul>
+<p><strong>Хранение:</strong></p>
+<ul>
+<li>200k курьеров × 6 точек/мин × 60 мин × 18 ч ≈ 1.3 млрд точек/сутки</li>
+<li>1.3 млрд × 200 байт ≈ <strong>260 ГБ/сутки</strong></li>
+<li>За год: <strong>~95 ТБ</strong></li>
+<li>С индексами и overhead (x1.5): <strong>~140 ТБ/год</strong></li>
+</ul>
+<h2 id="6">6. Ключевые требования и ограничения<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<p><strong>Функциональные:</strong> см. PRD, раздел 5</p>
+<p><strong>Нефункциональные:</strong></p>
+<ul>
+<li>Staleness &lt; 1 мин</li>
+<li>Availability 99.99%</li>
+<li>Хранение 1 год</li>
+<li>Эластичность (пиковый множитель x3)</li>
+</ul>
+<p><strong>Технические ограничения / стек:</strong></p>
+<ul>
+<li>Go (сервисы — высокая производительность при write-heavy нагрузке)</li>
+<li>PostgreSQL, Redis, Kafka, BigQuery</li>
+<li>API Gateway + Load Balancer (Nginx / Envoy)</li>
+<li>pgbouncer (transaction mode)</li>
+<li>Patroni + etcd (автоматический failover PostgreSQL)</li>
+</ul>
+<h2 id="7">7. Масштабируемость и отказоустойчивость<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<h3 id="_1">Паттерны надёжности<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Write-ahead в Kafka</strong> — Location Ingester пишет сырые данные в Kafka перед обработкой. Tracks сервис потребляет в своём темпе. При падении Tracks сервиса данные не теряются.</li>
+<li><strong>Kafka replication factor 3</strong> — отказоустойчивость очереди, потеря данных только при падении всего кластера</li>
+<li><strong>Redis Sentinel</strong> — автоматический failover Redis (текущие позиции). При падении данные теряются, но восстанавливаются естественным потоком: Couriers сервис продолжает потреблять <code>last-coordinate</code> и делать GEOADD, через ~10 сек (интервал GPS) все активные курьеры обновят позиции. Replay не требуется. При росте до 1 млн — переход на Redis Cluster (шардирование).</li>
+<li><strong>PostgreSQL — Patroni + etcd</strong> — автоматический failover за 10-30 сек. Ручной failover несовместим с 99.99% availability</li>
+<li><strong>PostgreSQL Tracks — async replication</strong> — master + 2 реплики. Kafka хранит сырые данные — при потере master'а Tracks сервис перечитает топик. Async не добавляет latency на write path (критично при 20k RPS)</li>
+<li><strong>PostgreSQL Couriers — semi-sync replication</strong> — master + 1 sync replica + 1 async. Данные профилей и смен критичнее GPS-точек, нагрузка низкая — sync к одной реплике не влияет на производительность</li>
+<li><strong>pgbouncer (transaction mode)</strong> — перед каждым PG-инстансом (master + реплики). Мультиплексирует тысячи входящих соединений от stateless-сервисов в сотни реальных коннектов. PG max_connections=300, pgbouncer default_pool_size=100</li>
+<li><strong>Роутинг read/write</strong> — два DSN в конфиге сервиса: write → pgbouncer-master, read → pgbouncer-replicas</li>
+<li><strong>Rate limiter на API GW</strong> — защита от перегрузки (429 + Retry-After)</li>
+<li><strong>Circuit breaker</strong> — между сервисами, предотвращает каскадные отказы</li>
+<li><strong>Буферизация на клиенте</strong> — мобильное приложение копит GPS-точки при потере связи, отправляет batch при восстановлении</li>
+</ul>
+<h3 id="_2">Масштабирование<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Location Ingester</strong> — stateless, горизонтальное масштабирование за LB</li>
+<li><strong>Tracks сервис</strong> — масштабирование консьюмеров Kafka (до числа партиций)</li>
+<li><strong>Couriers сервис</strong> — stateless, горизонтальное масштабирование</li>
+<li><strong>PostgreSQL Tracks</strong> — партиционирование по месяцам, 2 read-реплики, шардирование через Citus при росте до 1 млн</li>
+<li><strong>Redis Geo</strong> — Redis Cluster при росте за пределы одного инстанса</li>
+</ul>
+<h2 id="8">8. Безопасность<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Все API за авторизацией</li>
+<li>Роли: курьер, диспетчер</li>
+<li>Rate limiting на курьерских эндпоинтах (429 + Retry-After)</li>
+<li>Детальная проработка — за скоупом</li>
+</ul>
+<h2 id="9">9. Мониторинг<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<h3 id="-">Бизнес-метрики<a class="headerlink" href="#-" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Staleness</strong> — разница между timestamp GPS-точки и временем получения сервером. Алерт: &gt;1 мин по 50+ курьерам</li>
+<li><strong>Активные курьеры на линии</strong> — аномальное падение числа = алерт</li>
+<li><strong>Потерянные точки</strong> — курьер на линии, но точки не приходят &gt;1 мин</li>
+</ul>
+<h3 id="_3">Инфраструктурные метрики<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>Базовый подход: <strong>RED</strong> для сервисов и сети, <strong>USE</strong> для инфраструктуры.</p>
+<p><strong>RED (сервисы):</strong></p>
+<ul>
+<li><strong>Rate</strong> — RPS по эндпоинтам и consumer throughput (msg/sec)</li>
+<li><strong>Errors</strong> — error rate по эндпоинтам, failed inserts, Kafka consumer errors</li>
+<li><strong>Duration</strong> — API latency p95/p99, batch insert latency p95</li>
+</ul>
+<p><strong>USE (инфраструктура):</strong></p>
+<ul>
+<li><strong>Utilization</strong> — CPU, memory, disk usage (PG Tracks — критично при ~260 ГБ/сутки), pgbouncer pool utilization, Redis used_memory</li>
+<li><strong>Saturation</strong> — Kafka consumer lag по партициям, PG replication lag, очередь соединений pgbouncer</li>
+<li><strong>Errors</strong> — PG connection errors, Redis connection refused, Kafka broker unavailable</li>
+</ul>
+<p><strong>Специфичные метрики:</strong></p>
+<ul>
+<li><strong>BQ Sink Connector lag</strong> — consumer lag группы <code>bq-sink</code>. Критично: если connector отстаёт, данные не попадают в cold storage</li>
+<li><strong>Redis Geo keys count</strong> — должно совпадать с числом курьеров на линии</li>
+</ul>
+<h3 id="_4">Алерты<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Метрика</th>
+<th>Warning</th>
+<th>Critical</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Staleness</td>
+<td>&gt;30 сек</td>
+<td>&gt;1 мин</td>
+</tr>
+<tr>
+<td>Kafka consumer lag (<code>tracks-service</code>)</td>
+<td>растёт 5 мин</td>
+<td>растёт 15 мин</td>
+</tr>
+<tr>
+<td>Kafka consumer lag (<code>bq-sink</code>)</td>
+<td>растёт 15 мин</td>
+<td>растёт 1 час</td>
+</tr>
+<tr>
+<td>PG replication lag (Tracks, async)</td>
+<td>&gt;10 сек</td>
+<td>&gt;30 сек</td>
+</tr>
+<tr>
+<td>PG replication lag (Couriers, sync)</td>
+<td>&gt;1 сек</td>
+<td>&gt;5 сек</td>
+</tr>
+<tr>
+<td>PG Tracks disk usage</td>
+<td>&gt;70%</td>
+<td>&gt;85%</td>
+</tr>
+<tr>
+<td>API error rate</td>
+<td>&gt;0.5%</td>
+<td>&gt;1%</td>
+</tr>
+<tr>
+<td>Redis недоступен</td>
+<td>—</td>
+<td>сразу</td>
+</tr>
+</tbody>
+</table>
+<h2 id="10">10. Риски и предположения<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
+<p><strong>Допущения:</strong></p>
+<ul>
+<li>Система для <strong>last-mile delivery</strong> (посылки, документы, еда)</li>
+<li>Максимальная смена курьера — ~14 часов, максимальный трек смены — ~5 000 точек (~380 КБ). Пагинация для треков не требуется.</li>
+<li>Курьеры работают ~18 ч/сутки суммарно (с учётом часовых поясов)</li>
+<li>Пиковый множитель x3 (обед + вечер, праздники)</li>
+<li>200 байт на GPS-точку (с JSON-обвязкой)</li>
+</ul>
+<p><strong>Риски:</strong> см. PRD, раздел 10</p>
+<h2 id="11-1">11. Горизонт масштабирования (до 1 млн курьеров)<a class="headerlink" href="#11-1" title="Permanent link">&para;</a></h2>
+<p>Текущая архитектура рассчитана на 200k курьеров одновременно. При росте до 1 млн (x5) основные изменения:</p>
+<table>
+<thead>
+<tr>
+<th>Компонент</th>
+<th>Сейчас (200k)</th>
+<th>При 1 млн</th>
+<th>Что меняется</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Write RPS</td>
+<td>20k (пик 60k)</td>
+<td>100k (пик 300k)</td>
+<td>Location Ingester: горизонтальное масштабирование. Kafka: увеличение партиций (128-256)</td>
+</tr>
+<tr>
+<td>Redis Geo</td>
+<td>Один инстанс</td>
+<td>Redis Cluster (geo-sharding по регионам)</td>
+<td>GEOSEARCH по 1 млн ключей на одном инстансе — latency растёт. Шардирование по geo-зонам (Москва, СПб, Урал, ...)</td>
+</tr>
+<tr>
+<td>PostgreSQL Tracks</td>
+<td>Партиционирование по месяцам</td>
+<td>+ шардирование по courier_id</td>
+<td>Одна БД не переварит 100k INSERT/sec. Шардирование через Citus или на уровне приложения</td>
+</tr>
+<tr>
+<td>Хранение</td>
+<td>~95 ТБ/год</td>
+<td>~475 ТБ/год</td>
+<td>BigQuery справится, но стоимость x5. Рассмотреть компрессию и downsampling для холодных данных</td>
+</tr>
+<tr>
+<td>Kafka</td>
+<td>Один кластер</td>
+<td>Несколько кластеров или увеличение брокеров</td>
+<td>100k msg/sec — один кластер ещё тянет, но запас минимальный</td>
+</tr>
+</tbody>
+</table>
+<p>Текущая архитектура масштабируется до 1 млн без переделки — за счёт горизонтального масштабирования stateless-сервисов, увеличения партиций Kafka и добавления шардов PostgreSQL. Единственное архитектурное изменение — geo-sharding Redis.</p>
+<h2 id="12">12. Влияния и последствия<a class="headerlink" href="#12" title="Permanent link">&para;</a></h2>
+<p><strong>Направления развития:</strong></p>
+<ul>
+<li>Этап 2: сущность "заказ", привязка треков к заказам</li>
+<li>Аналитика маршрутов, поиск аномалий</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  К началу
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy", "toc.integrate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u0421\u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u043e \u0432 \u0431\u0443\u0444\u0435\u0440", "clipboard.copy": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432 \u0431\u0443\u0444\u0435\u0440", "search.result.more.one": "\u0415\u0449\u0451 1 \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.more.other": "\u0415\u0449\u0451 # \u043d\u0430 \u044d\u0442\u043e\u0439 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435", "search.result.none": "\u0421\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439 \u043d\u0435 \u043d\u0430\u0439\u0434\u0435\u043d\u043e", "search.result.one": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e 1 \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0435", "search.result.other": "\u041d\u0430\u0439\u0434\u0435\u043d\u043e \u0441\u043e\u0432\u043f\u0430\u0434\u0435\u043d\u0438\u0439: #", "search.result.placeholder": "\u041d\u0430\u0447\u043d\u0438\u0442\u0435 \u043f\u0435\u0447\u0430\u0442\u0430\u0442\u044c \u0434\u043b\u044f \u043f\u043e\u0438\u0441\u043a\u0430", "search.result.term.missing": "\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442", "select.version": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0441\u0438\u044e"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

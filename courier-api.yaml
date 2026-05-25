@@ -1,0 +1,216 @@
+openapi: 3.0.3
+info:
+  title: Courier API
+  description: |
+    API для мобильного приложения курьера.
+
+    **Версионирование:** мобильные клиенты нельзя принудительно обновить —
+    при изменении контракта создаётся новая версия (`/v2/courier/...`), старая поддерживается.
+
+    **Аутентификация:** заголовок `X-Api-Token`. courierId извлекается из токена —
+    курьер не может отправить данные за другого курьера.
+
+    **Rate limiting:** все эндпоинты защищены rate limiter на API Gateway.
+    При превышении — `429 Too Many Requests` с заголовком `Retry-After`.
+
+    **Ошибки инфраструктуры:** API Gateway может вернуть `502` / `503`
+    при недоступности backend-сервисов (не описаны в spec — уровень инфраструктуры).
+  version: 1.0.0
+
+servers:
+  - url: /api/v1/courier
+
+security:
+  - ApiToken: []
+
+tags:
+  - name: Shifts
+    description: Управление сменами
+  - name: Locations
+    description: Отправка GPS-координат
+
+paths:
+  /shifts:
+    post:
+      tags: [Shifts]
+      summary: Открыть смену
+      description: |
+        Курьер выходит на линию. Создаёт новую смену.
+        courierId извлекается из токена.
+        Идемпотентный ключ в заголовке `Idempotency-Key` защищает от дублей.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      responses:
+        "201":
+          description: Смена создана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shiftId:
+                    type: integer
+                    example: 42
+        "400":
+          description: Курьер уже на линии (есть незакрытая смена)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /shifts/{shiftId}:
+    delete:
+      tags: [Shifts]
+      summary: Закрыть смену
+      description: Курьер уходит с линии. Устанавливает `endedAt` для смены.
+      parameters:
+        - $ref: "#/components/parameters/ShiftId"
+      responses:
+        "204":
+          description: Смена закрыта
+        "404":
+          description: Смена не найдена (или не принадлежит этому курьеру)
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "409":
+          description: Смена уже закрыта
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /locations:
+    post:
+      tags: [Locations]
+      summary: Отправить GPS-координату
+      description: |
+        Одна точка. Отправляется каждые 10 секунд.
+        courierId извлекается из токена.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocationInput"
+      responses:
+        "200":
+          description: Принято
+        "400":
+          description: "Невалидные данные (lat вне [-90, 90], lng вне [-180, 180], пустые поля)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /locations/batch:
+    post:
+      tags: [Locations]
+      summary: Отправить буфер GPS-координат
+      description: |
+        Batch-отправка после восстановления связи.
+        Максимум 100 точек в одном запросе.
+        courierId извлекается из токена.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/LocationInput"
+              maxItems: 100
+      responses:
+        "200":
+          description: Принято
+        "400":
+          description: "Невалидные данные или превышен лимит (> 100 элементов)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+components:
+  securitySchemes:
+    ApiToken:
+      type: apiKey
+      in: header
+      name: X-Api-Token
+      description: Токен аутентификации. courierId извлекается из токена.
+
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Ключ идемпотентности
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+    ShiftId:
+      name: shiftId
+      in: path
+      required: true
+      schema:
+        type: integer
+      example: 42
+
+  schemas:
+    LocationInput:
+      type: object
+      required: [timestamp, location]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-01-15T10:05:30+03:00"
+        location:
+          type: object
+          required: [lat, lng]
+          properties:
+            lat:
+              type: number
+              format: double
+              minimum: -90
+              maximum: 90
+              example: 55.7558
+            lng:
+              type: number
+              format: double
+              minimum: -180
+              maximum: 180
+              example: 37.6173
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "shift already open"
+
+  responses:
+    Unauthorized:
+      description: Невалидный или просроченный токен
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+          description: Секунды до следующего разрешённого запроса
+          example: 5
