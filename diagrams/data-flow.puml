@@ -1,7 +1,7 @@
 @startuml Data_Flow
 !pragma layout smetana
 left to right direction
-skinparam backgroundColor transparent
+skinparam backgroundColor white
 skinparam defaultFontSize 13
 skinparam componentStyle rectangle
 
