@@ -1,0 +1,21 @@
+@startuml C4_Context
+!pragma layout smetana
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title System Context — GPS-трекинг курьеров (MeepMeep)
+
+Person(courier, "Курьер", "Мобильное приложение. Отправляет GPS-координаты каждые 10 сек, управляет сменами.")
+Person(dispatcher, "Диспетчер", "Веб-интерфейс. Мониторит карту, анализирует маршруты и смены.")
+
+System(tracking, "Система GPS-трекинга", "Приём и хранение GPS-координат, отображение курьеров на карте, история треков.")
+
+System_Ext(orders, "Система заказов", "Управление заказами, назначение на курьеров. Публикует события order.assigned / order.completed.")
+System_Ext(client_app, "Клиентское приложение", "Приложение получателя. Вне скоупа трекинга.")
+
+Rel(courier, tracking, "GPS-координаты, смены", "HTTPS")
+Rel(dispatcher, tracking, "Карта, треки, заказы", "HTTPS")
+Rel(orders, tracking, "События заказов", "Kafka")
+Rel(orders, client_app, "Статус доставки")
+
+SHOW_LEGEND()
+@enduml

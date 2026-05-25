@@ -1,0 +1,77 @@
+site_name: "GPS Courier Tracking — System Design"
+site_description: "Архитектурное решение системы GPS-трекинга курьеров"
+site_author: "Vyacheslav Melnikov"
+
+theme:
+  name: material
+  language: ru
+  palette:
+    - scheme: slate
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Светлая тема
+    - scheme: default
+      primary: deep purple
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Тёмная тема
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - toc.integrate
+  font:
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - swagger-ui-tag
+
+nav:
+  - Home: index.md
+  - PRD: PRD.md
+  - SAD: SAD.md
+  - ADR Log:
+    - Log: adr/index.md
+    - "001 — Polling vs WebSocket": adr/001-polling-vs-websocket.md
+    - "002 — Hot/Cold Storage": adr/002-hot-cold-storage.md
+    - "003 — Redis Geo": adr/003-redis-geo-current-positions.md
+    - "004 — Track Storage": adr/004-track-storage-choice.md
+    - "005 — Partitioning": adr/005-partitioning-strategy.md
+  - API:
+    - Overview: api.md
+    - Courier API: courier-api.md
+    - Operator API: operator-api.md
+
+markdown_extensions:
+  - tables
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tilde
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+watch:
+  - .
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social: []

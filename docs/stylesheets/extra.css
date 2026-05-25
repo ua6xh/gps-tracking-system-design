@@ -1,0 +1,14 @@
+/* Hide MkDocs page title on Swagger UI pages to avoid duplicate headings */
+.md-content__inner:has(.swagger-ui-iframe) > h1 {
+  display: none;
+}
+
+/* Remove top spacing on Swagger UI pages */
+.md-content__inner:has(.swagger-ui-iframe) {
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.md-content__inner:has(.swagger-ui-iframe):before {
+  display: none;
+}
