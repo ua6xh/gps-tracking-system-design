@@ -169,15 +169,19 @@ components:
   schemas:
     LocationInput:
       type: object
-      required: [timestamp, location]
+      required: [shiftId, timestamp, location]
       properties:
+        shiftId:
+          type: integer
+          description: ID смены (получен при POST /shifts)
+          example: 42
         timestamp:
           type: string
           format: date-time
           example: "2026-01-15T10:05:30+03:00"
         location:
           type: object
-          required: [lat, lng]
+          required: [lat, lng, accuracy]
           properties:
             lat:
               type: number
@@ -191,6 +195,12 @@ components:
               minimum: -180
               maximum: 180
               example: 37.6173
+            accuracy:
+              type: number
+              format: float
+              minimum: 0
+              description: Точность GPS в метрах (от датчика устройства)
+              example: 10.5
 
     Error:
       type: object

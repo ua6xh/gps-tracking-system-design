@@ -358,6 +358,11 @@ components:
           type: number
           format: double
           example: 37.6173
+        accuracy:
+          type: number
+          format: float
+          description: Точность GPS в метрах
+          example: 10.5
         timestamp:
           type: string
           format: date-time

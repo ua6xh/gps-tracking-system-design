@@ -12,7 +12,7 @@
 
 ### PostgreSQL
 
-Партиционирование по месяцам (`locations_2026_01`, ...), BRIN-индекс на `created_at` (compact, идеален для append-only), B-tree на `(shift_id, created_at)` для point query трека смены.
+Партиционирование по месяцам (`locations_2026_01`, ...), BRIN-индекс на `client_timestamp` (compact, идеален для append-only), B-tree на `(shift_id, client_timestamp)` для point query трека смены.
 
 - ✅ Полноценные транзакции, FK, JOIN
 - ✅ Batch INSERT (micro-batching из Kafka consumer, multi-row VALUES) — 20k RPS
