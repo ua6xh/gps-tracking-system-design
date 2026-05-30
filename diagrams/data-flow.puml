@@ -65,9 +65,11 @@ dispatcher -[#blue,bold]-> apigw : <color:blue>запросы
 apigw -[#blue,bold]-> couriers
 
 couriers -[#blue]-> redis_geo : <color:blue>карта\n<color:blue>(GEOSEARCH)
-couriers -[#blue]-> redis_cache : <color:blue>трек hot\n<color:blue>(cache hit)
-couriers -[#blue,dashed]-> pg : <color:blue>трек hot\n<color:blue>(cache miss)
-couriers -[#blue,dashed]-> bq : <color:blue>трек cold
+couriers -[#blue]-> tracks : <color:blue>трек смены\n<color:blue>(shiftId + окно)
+
+tracks -[#blue]-> redis_cache : <color:blue>трек hot\n<color:blue>(cache hit)
+tracks -[#blue,dashed]-> pg : <color:blue>трек hot\n<color:blue>(cache miss)
+tracks -[#blue,dashed]-> bq : <color:blue>трек cold
 
 legend right
   <color:green>■</color> Write path — GPS-точки от курьера
